@@ -2,26 +2,31 @@
 /*
 Plugin Name: Google Subscribed Links
 Plugin Author: Ankur Kothari
+Plugin URI: http://lipidity.com/web/wordpress/google-subscribed-links/
+Author URI: http://lipidity.com/
 Version: 0.1
 Description: Subscribers see your site's results first and highlighted in Google.
 */
 
 function coop_feedsmith_compat(){
-	if(!isset($_REQUEST['coop']))return;
-	/* feedsmith compatibility */
-	remove_action('template_redirect', 'ol_feed_redirect');
-	remove_action('init','ol_check_url');
-	/* full text feed compatibility */
-	remove_filter('the_content', 'restore_text');
-	/* no. of posts */
-	add_filter('post_limits','coop_post_limits');
+	if(isset($_REQUEST['coop'])) {
+		/* feedsmith compatibility */
+		remove_action('template_redirect', 'ol_feed_redirect');
+		remove_action('init','ol_check_url');
+		/* full text feed compatibility */
+		remove_filter('the_content', 'restore_text');
+		/* no. of posts */
+		add_filter('post_limits','coop_post_limits');
+	}
 }
 add_action('init', 'coop_feedsmith_compat', 1);
 
 function coop_post_limits ($s) {
-	if(!is_feed() || !isset($_REQUEST['limit'])) return $s;
-	$limit = (int) $_REQUEST['limit'];
-	return (empty($limit)) ? $s : ($limit < 1) ? '' : "LIMIT $limit";
+	if(is_feed() && isset($_REQUEST['limit'])) {
+		$limit = (int) $_REQUEST['limit'];
+		return (empty($limit)) ? $s : ($limit < 1) ? '' : "LIMIT $limit";
+	}
+	return $s;
 }
 
 function coop_google_ns(){
@@ -42,7 +47,8 @@ add_action('rss2_item', 'coop_google_keywords');
 
 function coop_content($text='') { // Fakes an excerpt if needed
 	global $post;
-	if ( '' == $text ) $text = get_the_content('');
+	if ( '' == $text )
+		$text = get_the_content('');
 //	$text = apply_filters('the_content', $text);
 	$text = str_replace(']]>', ']]&gt;', $text);
 	$text = strip_tags($text);
